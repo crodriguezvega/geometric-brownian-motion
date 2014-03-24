@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -29,7 +30,7 @@ namespace GeometricBrownianMotion
     private CancellationTokenSource drawingToken;
     private CancellationTokenSource rescalingToken;
 
-    private ViewModel viewModel;
+    private readonly ViewModel viewModel;
 
     public GMBWindow()
     {
@@ -55,8 +56,7 @@ namespace GeometricBrownianMotion
         double dt = T / numSamples;
         double St = initialValue;
 
-        var worldPoints = new Points();
-        worldPoints.Add(new Point(0, St));
+        var worldPoints = new Points() { new Point(0, St) };
 
         for (int i = 1; i <= numSamples; ++i)
         {
@@ -113,21 +113,22 @@ namespace GeometricBrownianMotion
     /// <param name="yValues">Values of the sample path in the Y axis.</param>
     private bool IsRescalingNeeded(IEnumerable<double> yValues)
     {
-      if (viewModel.Y.Range.Min > yValues.Min() || viewModel.Y.Range.Max < yValues.Max())
+      var vals = yValues.ToList();
+      if (viewModel.Y.Range.Min > vals.Min() || viewModel.Y.Range.Max < vals.Max())
       {
         // Cancel any rescaling being executed because the ranges are going to change
         rescalingToken.Cancel();
 
         var min = viewModel.Y.Range.Min;
-        if (viewModel.Y.Range.Min > yValues.Min())
+        if (viewModel.Y.Range.Min > vals.Min())
         {
-          min = yValues.Min();
+          min = vals.Min();
         }
 
         var max = viewModel.Y.Range.Max;
-        if (viewModel.Y.Range.Max < yValues.Max())
+        if (viewModel.Y.Range.Max < vals.Max())
         {
-          max = yValues.Max();
+          max = vals.Max();
         }
 
         viewModel.Y.Range.Min = min - (min * 0.05);
@@ -170,12 +171,12 @@ namespace GeometricBrownianMotion
     /// </summary>
     private async void Draw()
     {
-      int numPaths = 0; bool numPathsParsing = int.TryParse(txNumPaths.Text, out numPaths);
-      int numSamples = 0; bool numSamplesParsing = int.TryParse(txNumSamples.Text, out numSamples);
-      double initialValue = 0; bool initialValueParsing = double.TryParse(txInitialValue.Text, out initialValue);
-      double mu = 0; bool muParsing = double.TryParse(txMu.Text, out mu);
-      double sigma = 0; bool sigmaParsing = double.TryParse(txSigma.Text, out sigma);
-      double T = 0; bool TParsing = double.TryParse(txT.Text, out T);
+      int numPaths = 0; bool numPathsParsing = int.TryParse(txNumPaths.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out numPaths);
+      int numSamples = 0; bool numSamplesParsing = int.TryParse(txNumSamples.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out numSamples);
+      double initialValue = 0; bool initialValueParsing = double.TryParse(txInitialValue.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out initialValue);
+      double mu = 0; bool muParsing = double.TryParse(txMu.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out mu);
+      double sigma = 0; bool sigmaParsing = double.TryParse(txSigma.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out sigma);
+      double T = 0; bool TParsing = double.TryParse(txT.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out T);
 
       // Check input
       viewModel.InputError = String.Empty;

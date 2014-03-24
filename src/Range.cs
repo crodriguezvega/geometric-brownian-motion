@@ -9,7 +9,7 @@ namespace GeometricBrownianMotion
 {
   public class Range : INotifyPropertyChanged
   {
-    public double min;
+    private double min;
     public double Min
     {
       get
@@ -18,10 +18,6 @@ namespace GeometricBrownianMotion
       }
       set
       {
-        if (min == value)
-        {
-          return;
-        }
         min = value;
         this.NotifyPropertyChanged("Min");
       }
@@ -36,10 +32,6 @@ namespace GeometricBrownianMotion
       }
       set
       {
-        if (max == value)
-        {
-          return;
-        }
         max = value;
         this.NotifyPropertyChanged("Max");
       }
