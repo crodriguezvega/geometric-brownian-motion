@@ -80,7 +80,7 @@ namespace GeometricBrownianMotion
     /// <param name="height">Canvas height.</param>
     /// <param name="rangeX">Range of values of the sample path in the X axis.</param>
     /// <param name="rangeY">Range of values of the sample path in the Y axis.</param>
-    Task<Points> ConvertWorldPointsToCanvasPoints(Points worldPoints, CancellationToken token, double width, double height, Range rangeX, Range rangeY)
+    private Task<Points> ConvertWorldPointsToCanvasPoints(Points worldPoints, CancellationToken token, double width, double height, Range rangeX, Range rangeY)
     {
       return Task.Run(() =>
       {
