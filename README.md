@@ -1,5 +1,5 @@
-Generator of geometric brownian motion samples
-==============================================
+Monte Carlo generator of geometric brownian motion samples
+==========================================================
 
 This WPF application lets you generate sample paths of a [geometric brownian motion](http://en.wikipedia.org/wiki/Geometric_Brownian_motion 'Wikipedia entry for geometric brownian motion'). This type of stochastic process is frequently used in the modelling of asset prices.
 
