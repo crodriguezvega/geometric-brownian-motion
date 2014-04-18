@@ -49,45 +49,38 @@ namespace GeometricBrownianMotion
     /// <param name="mu">Drift of the sample path.</param>
     /// <param name="sigma">Standard deviation of the sample path.</param>
     /// <param name="T">Time length.</param>
-    private Task<Points> GBMPath(Random rng, int numSamples, double initialValue, double mu, double sigma, double T)
+    private Points GBMPath(Random rng, int numSamples, double initialValue, double mu, double sigma, double T)
     {
-      return Task.Run(() =>
+      double dt = T / (numSamples - 1);
+      double St = initialValue;
+
+      var worldPoints = new Points() { new Point(0, St) };
+
+      for (int i = 1; i < numSamples; ++i)
       {
-        double dt = T / numSamples;
-        double St = initialValue;
+        double Z = Normal.Sample(rng, 0.0, 1.0);
+        double S = St * Math.Exp((mu - (Math.Pow(sigma, 2) / 2)) * dt + sigma * Math.Sqrt(dt) * Z);
+        St = S;
 
-        var worldPoints = new Points() { new Point(0, St) };
+        worldPoints.Add(new Point(i * dt, St));
+      }
 
-        for (int i = 1; i <= numSamples; ++i)
-        {
-          double Z = Normal.Sample(rng, 0.0, 1.0);
-          double S = St * Math.Exp((mu - (Math.Pow(sigma, 2) / 2)) * dt + sigma * Math.Sqrt(dt) * Z);
-          St = S;
-
-          worldPoints.Add(new Point(i * dt, St));
-        }
-
-        return worldPoints;
-      }, drawingToken.Token);
+      return worldPoints;
     }
 
     /// <summary>
     /// Converts the values of the geometric brownian motion sample path to pixel coordinates in the canvas.
     /// </summary>
     /// <param name="worldPoints">Values of the geometric sample path.</param>
-    /// <param name="token">Token to be able to cancel the task.</param>
     /// <param name="width">Canvas width.</param>
     /// <param name="height">Canvas height.</param>
     /// <param name="rangeX">Range of values of the sample path in the X axis.</param>
     /// <param name="rangeY">Range of values of the sample path in the Y axis.</param>
-    private Task<Points> ConvertWorldPointsToCanvasPoints(Points worldPoints, CancellationToken token, double width, double height, Range rangeX, Range rangeY)
+    private Points ConvertWorldPointsToCanvasPoints(Points worldPoints, double width, double height, Range rangeX, Range rangeY)
     {
-      return Task.Run(() =>
-      {
-        var canvasPoints = new Points();
-        worldPoints.ForEach(wp => canvasPoints.Add(ConvertPoint(wp, width, height, rangeX, rangeY)));
-        return canvasPoints;
-      }, token);
+      var canvasPoints = new Points();
+      worldPoints.ForEach(wp => canvasPoints.Add(ConvertPoint(wp, width, height, rangeX, rangeY)));
+      return canvasPoints;
     }
 
     /// <summary>
@@ -153,7 +146,13 @@ namespace GeometricBrownianMotion
 
         try
         {
-          samplePath.CanvasPoints = await ConvertWorldPointsToCanvasPoints(samplePath.WorldPoints, rescalingToken.Token, chartCanvas.Width, chartCanvas.Height, viewModel.X.Range, viewModel.Y.Range);
+          var canvasWidth = chartCanvas.Width;
+          var canvasHeight = chartCanvas.Height;
+          samplePath.CanvasPoints = await Task.Run(() => ConvertWorldPointsToCanvasPoints(samplePath.WorldPoints,
+                                                                                          canvasWidth,
+                                                                                          canvasHeight,
+                                                                                          viewModel.X.Range,
+                                                                                          viewModel.Y.Range), rescalingToken.Token);
           Debug.WriteLine("Rescaled sample path " + i);
         }
         catch (OperationCanceledException ex)
@@ -171,12 +170,18 @@ namespace GeometricBrownianMotion
     /// </summary>
     private async void Draw()
     {
-      int numPaths = 0; bool numPathsParsing = int.TryParse(txNumPaths.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out numPaths);
-      int numSamples = 0; bool numSamplesParsing = int.TryParse(txNumSamples.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out numSamples);
-      double initialValue = 0; bool initialValueParsing = double.TryParse(txInitialValue.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out initialValue);
-      double mu = 0; bool muParsing = double.TryParse(txMu.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out mu);
-      double sigma = 0; bool sigmaParsing = double.TryParse(txSigma.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out sigma);
-      double T = 0; bool TParsing = double.TryParse(txT.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out T);
+      int numPaths = 0;
+      bool numPathsParsing = int.TryParse(txNumPaths.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out numPaths);
+      int numSamples = 0;
+      bool numSamplesParsing = int.TryParse(txNumSamples.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out numSamples);
+      double initialValue = 0;
+      bool initialValueParsing = double.TryParse(txInitialValue.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out initialValue);
+      double mu = 0;
+      bool muParsing = double.TryParse(txMu.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out mu);
+      double sigma = 0;
+      bool sigmaParsing = double.TryParse(txSigma.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out sigma);
+      double T = 0;
+      bool TParsing = double.TryParse(txT.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out T);
 
       // Check input
       viewModel.InputError = String.Empty;
@@ -205,7 +210,7 @@ namespace GeometricBrownianMotion
 
         try
         {
-          samplePath.WorldPoints = await GBMPath(rng, numSamples, initialValue, mu, sigma, T);
+          samplePath.WorldPoints = await Task.Run(() => GBMPath(rng, numSamples, initialValue, mu, sigma, T), drawingToken.Token);
 
           var yValues = samplePath.WorldPoints.Select(p => p.Y);
           if (IsRescalingNeeded(yValues))
@@ -213,7 +218,13 @@ namespace GeometricBrownianMotion
             Rescale(i);
           }
 
-          samplePath.CanvasPoints = await ConvertWorldPointsToCanvasPoints(samplePath.WorldPoints, drawingToken.Token, chartCanvas.Width, chartCanvas.Height, viewModel.X.Range, viewModel.Y.Range);
+          var canvasWidth = chartCanvas.Width;
+          var canvasHeight = chartCanvas.Height;
+          samplePath.CanvasPoints = await Task.Run(() => ConvertWorldPointsToCanvasPoints(samplePath.WorldPoints,
+                                                                                          canvasWidth,
+                                                                                          canvasHeight,
+                                                                                          viewModel.X.Range,
+                                                                                          viewModel.Y.Range), drawingToken.Token);
         }
         catch (OperationCanceledException ex)
         {
