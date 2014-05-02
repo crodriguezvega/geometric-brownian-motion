@@ -10,7 +10,7 @@ namespace GeometricBrownianMotion
 {
   public class ViewModel : INotifyPropertyChanged
   {
-    public string inputError;
+    private string inputError;
     public string InputError
     {
       get
