@@ -52,25 +52,25 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="view\App.xaml">
+    <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ViewModel.cs" />
-    <Compile Include="Points.cs" />
-    <Compile Include="Range.cs" />
-    <Compile Include="SamplePath.cs" />
-    <Page Include="view\GMBWindow.xaml">
+    <Compile Include="ViewModels\ViewModel.cs" />
+    <Compile Include="Models\Points.cs" />
+    <Compile Include="Models\Range.cs" />
+    <Compile Include="Models\SamplePath.cs" />
+    <Page Include="Views\GMBWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="view\App.xaml.cs">
+    <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AxisX.cs" />
-    <Compile Include="AxisY.cs" />
-    <Compile Include="view\GMBWindow.xaml.cs">
+    <Compile Include="Models\AxisX.cs" />
+    <Compile Include="Models\AxisY.cs" />
+    <Compile Include="Views\GMBWindow.xaml.cs">
       <DependentUpon>GMBWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>

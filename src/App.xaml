@@ -1,7 +1,7 @@
 ﻿<Application x:Class="GeometricBrownianMotion.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="view/GMBWindow.xaml">
+             StartupUri="Views/GMBWindow.xaml">
     <Application.Resources>
          
     </Application.Resources>
