@@ -1,25 +1,23 @@
 ﻿using System;
 using System.Globalization;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
+using GeometricBrownianMotion.ViewModels;
 
-namespace GeometricBrownianMotion
+namespace GeometricBrownianMotion.Views
 {
   /// <summary>
   /// Interaction logic for GMBWindow.xaml
   /// </summary>
   public partial class GMBWindow : Window
   {
-    private readonly ViewModel viewModel;
+    private readonly ViewModel _viewModel;
 
     public GMBWindow()
     {
       InitializeComponent();
 
-      viewModel = new ViewModel();
-      this.DataContext = viewModel;
+      _viewModel = new ViewModel();
+      this.DataContext = _viewModel;
     }
 
     /// <summary>
@@ -27,59 +25,58 @@ namespace GeometricBrownianMotion
     /// </summary>
     private bool ValidateInput()
     {
-      int numPaths = 0;
-      bool numPathsParsing = int.TryParse(txNumPaths.Text,
-                                          NumberStyles.Integer,
-                                          CultureInfo.CurrentCulture,
-                                          out numPaths);
-      int numSamples = 0;
-      bool numSamplesParsing = int.TryParse(txNumSamples.Text,
-                                            NumberStyles.Integer,
-                                            CultureInfo.CurrentCulture,
-                                            out numSamples);
-      double initialValue = 0;
-      bool initialValueParsing = double.TryParse(txInitialValue.Text,
-                                                 NumberStyles.Float,
-                                                 CultureInfo.CurrentCulture,
-                                                 out initialValue);
-      double mu = 0;
-      bool muParsing = double.TryParse(txMu.Text,
-                                       NumberStyles.Float,
-                                       CultureInfo.CurrentCulture,
-                                       out mu);
-      double sigma = 0;
-      bool sigmaParsing = double.TryParse(txSigma.Text,
-                                          NumberStyles.Float,
-                                          CultureInfo.CurrentCulture,
-                                          out sigma);
-      double T = 0;
-      bool TParsing = double.TryParse(txT.Text,
+      var numPathsParsing = int.TryParse(txNumPaths.Text,
+                                         NumberStyles.Integer,
+                                         CultureInfo.CurrentCulture,
+                                         out var numPaths);
+
+      var numSamplesParsing = int.TryParse(txNumSamples.Text,
+                                           NumberStyles.Integer,
+                                           CultureInfo.CurrentCulture,
+                                           out var numSamples);
+
+      var initialValueParsing = double.TryParse(txInitialValue.Text,
+                                                NumberStyles.Float,
+                                                CultureInfo.CurrentCulture,
+                                                out var initialValue);
+
+      var muParsing = double.TryParse(txMu.Text,
                                       NumberStyles.Float,
                                       CultureInfo.CurrentCulture,
-                                      out T);
+                                      out var mu);
+
+      var sigmaParsing = double.TryParse(txSigma.Text,
+                                         NumberStyles.Float,
+                                         CultureInfo.CurrentCulture,
+                                         out var sigma);
+
+      var TParsing = double.TryParse(txT.Text,
+                                     NumberStyles.Float,
+                                     CultureInfo.CurrentCulture,
+                                     out var T);
 
       // Check input
-      viewModel.InputError = String.Empty;
+      _viewModel.InputError = String.Empty;
       if (!(numPathsParsing && numSamplesParsing && initialValueParsing && muParsing && sigmaParsing && TParsing))
       {
-        viewModel.InputError = "Incorrect input values";
+        _viewModel.InputError = "Incorrect input values";
         startStopBtn.IsChecked = false;
         return false;
       }
 
       if (numPaths < 0 || numSamples < 0 || initialValue < 0 || sigma < 0 || T < 0)
       {
-        viewModel.InputError = "Incorrect input values";
+        _viewModel.InputError = "Incorrect input values";
         startStopBtn.IsChecked = false;
         return false;
       }
 
-      viewModel.NumberOfPaths = numPaths;
-      viewModel.NumberOfSamples = numSamples;
-      viewModel.InitialValue = initialValue;
-      viewModel.Mu = mu;
-      viewModel.Sigma = sigma;
-      viewModel.T = T;
+      _viewModel.NumberOfPaths = numPaths;
+      _viewModel.NumberOfSamples = numSamples;
+      _viewModel.InitialValue = initialValue;
+      _viewModel.Mu = mu;
+      _viewModel.Sigma = sigma;
+      _viewModel.T = T;
 
       return true;
     }
@@ -93,13 +90,13 @@ namespace GeometricBrownianMotion
       {
         if (ValidateInput())
         {
-          await viewModel.Start(chartCanvas.Width, chartCanvas.Height);
+          await _viewModel.Start(chartCanvas.Width, chartCanvas.Height);
           startStopBtn.IsChecked = false;
         }
       }
       else
       {
-        viewModel.Stop();
+        _viewModel.Stop();
       }
     }
   }

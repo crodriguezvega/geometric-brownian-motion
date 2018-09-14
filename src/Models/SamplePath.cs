@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Media;
-using System.Threading.Tasks;
+﻿using System.Windows.Media;
 using System.ComponentModel;
 
-namespace GeometricBrownianMotion
+namespace GeometricBrownianMotion.Models
 {
   public class SamplePath : INotifyPropertyChanged
   {
@@ -14,20 +9,17 @@ namespace GeometricBrownianMotion
     public Points CanvasPoints;
     public Brush Stroke { get; set; }
 
-    private string path;
+    private string _path;
     public string Path
     {
-      get
-      {
-        return path;
-      }
+      get => _path;
       set
       {
-        if (path == value)
+        if (_path == value)
         {
           return;
         }
-        path = value;
+        _path = value;
         this.NotifyPropertyChanged("Path");
       }
     }
@@ -43,10 +35,7 @@ namespace GeometricBrownianMotion
 
     public void NotifyPropertyChanged(string propName)
     {
-      if (this.PropertyChanged != null)
-      {
-        this.PropertyChanged(this, new PropertyChangedEventArgs(propName));
-      }
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     }
   }
 }

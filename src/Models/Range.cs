@@ -1,38 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
-namespace GeometricBrownianMotion
+namespace GeometricBrownianMotion.Models
 {
   public class Range : INotifyPropertyChanged
   {
-    private double min;
+    private double _min;
     public double Min
     {
-      get
-      {
-        return min;
-      }
+      get => _min;
       set
       {
-        min = value;
+        _min = value;
         this.NotifyPropertyChanged("Min");
       }
     }
 
-    public double max;
+    public double _max;
     public double Max
     {
-      get
-      {
-        return max;
-      }
+      get => _max;
       set
       {
-        max = value;
+        _max = value;
         this.NotifyPropertyChanged("Max");
       }
     }
@@ -47,10 +36,7 @@ namespace GeometricBrownianMotion
 
     public void NotifyPropertyChanged(string propName)
     {
-      if (this.PropertyChanged != null)
-      {
-        this.PropertyChanged(this, new PropertyChangedEventArgs(propName));
-      }
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
     }
   }
 }

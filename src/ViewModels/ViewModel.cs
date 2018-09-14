@@ -1,39 +1,35 @@
-﻿using System;
+﻿using MathNet.Numerics.Distributions;
+using MathNet.Numerics.Random;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
+using GeometricBrownianMotion.Models;
 
-using MathNet.Numerics.Random;
-using MathNet.Numerics.Distributions;
-
-namespace GeometricBrownianMotion
+namespace GeometricBrownianMotion.ViewModels
 {
   public class ViewModel : INotifyPropertyChanged
   {
-    private CancellationTokenSource drawingToken;
-    private CancellationTokenSource rescalingToken;
+    private CancellationTokenSource _drawingToken;
+    private CancellationTokenSource _rescalingToken;
 
-    private string inputError;
+    private string _inputError;
     public string InputError
     {
-      get
-      {
-        return inputError;
-      }
+      get => _inputError;
       set
       {
-        if (inputError == value)
+        if (_inputError == value)
         {
           return;
         }
-        inputError = value;
+        _inputError = value;
         this.NotifyPropertyChanged("InputError");
       }
     }
@@ -73,15 +69,15 @@ namespace GeometricBrownianMotion
     /// <param name="rng">Random number generator.</param>
     private Points GBMPath(Random rng)
     {
-      double dt = T / (NumberOfSamples - 1);
-      double St = InitialValue;
+      var dt = T / (NumberOfSamples - 1);
+      var St = InitialValue;
 
       var worldPoints = new Points() { new Point(0, St) };
 
-      for (int i = 1; i < NumberOfSamples; ++i)
+      for (var i = 1; i < NumberOfSamples; ++i)
       {
-        double Z = Normal.Sample(rng, 0.0, 1.0);
-        double S = St * Math.Exp((Mu - (Math.Pow(Sigma, 2) / 2)) * dt + Sigma * Math.Sqrt(dt) * Z);
+        var Z = Normal.Sample(rng, 0.0, 1.0);
+        var S = St * Math.Exp((Mu - (Math.Pow(Sigma, 2) / 2)) * dt + Sigma * Math.Sqrt(dt) * Z);
         St = S;
 
         worldPoints.Add(new Point(i * dt, St));
@@ -132,7 +128,7 @@ namespace GeometricBrownianMotion
       if (Y.Range.Min > vals.Min() || Y.Range.Max < vals.Max())
       {
         // Cancel any rescaling being executed because the ranges are going to change
-        rescalingToken.Cancel();
+        _rescalingToken.Cancel();
 
         var min = Y.Range.Min;
         if (Y.Range.Min > vals.Min())
@@ -148,7 +144,7 @@ namespace GeometricBrownianMotion
 
         Y.Range.Min = min - (min * 0.05);
         Y.Range.Max = max + (max * 0.05);
-        rescalingToken = new CancellationTokenSource();
+        _rescalingToken = new CancellationTokenSource();
 
         return true;
       }
@@ -174,7 +170,7 @@ namespace GeometricBrownianMotion
                                                                                           canvasWidth,
                                                                                           canvasHeight,
                                                                                           X.Range,
-                                                                                          Y.Range), rescalingToken.Token);
+                                                                                          Y.Range), _rescalingToken.Token);
           Debug.WriteLine("Rescaled sample path " + i);
         }
         catch (OperationCanceledException ex)
@@ -194,8 +190,8 @@ namespace GeometricBrownianMotion
     /// <param name="canvasHeight">Height of drawing canvas.</param>
     public async Task Start(double canvasWidth, double canvasHeight)
     {
-      drawingToken = new CancellationTokenSource();
-      rescalingToken = new CancellationTokenSource();
+      _drawingToken = new CancellationTokenSource();
+      _rescalingToken = new CancellationTokenSource();
 
       SamplePaths.Clear();
       Y.Range.Min = 0;
@@ -203,7 +199,7 @@ namespace GeometricBrownianMotion
       X.Range.Min = 0;
       X.Range.Max = T;
 
-      Type brushesType = typeof(Brushes);
+      var brushesType = typeof(Brushes);
       var colors = brushesType.GetProperties();
       var rng = new MersenneTwister();
 
@@ -213,7 +209,7 @@ namespace GeometricBrownianMotion
 
         try
         {
-          samplePath.WorldPoints = await Task.Run(() => GBMPath(rng), drawingToken.Token);
+          samplePath.WorldPoints = await Task.Run(() => GBMPath(rng), _drawingToken.Token);
 
           var yValues = samplePath.WorldPoints.Select(p => p.Y);
           if (IsRescalingNeeded(yValues))
@@ -225,7 +221,7 @@ namespace GeometricBrownianMotion
                                                                                           canvasWidth,
                                                                                           canvasHeight,
                                                                                           X.Range,
-                                                                                          Y.Range), drawingToken.Token);
+                                                                                          Y.Range), _drawingToken.Token);
         }
         catch (OperationCanceledException ex)
         {
@@ -245,8 +241,8 @@ namespace GeometricBrownianMotion
     /// </summary>
     public void Stop()
     {
-      drawingToken.Cancel();
-      rescalingToken.Cancel();
+      _drawingToken.Cancel();
+      _rescalingToken.Cancel();
     }
   }
 }
